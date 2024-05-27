@@ -129,10 +129,12 @@ public abstract class AbstractCatalog implements Catalog {
 
     @Override
     public boolean databaseExists(String databaseName) {
+        // 这步检查外面好像已经有了
         if (isSystemDatabase(databaseName)) {
             return true;
         }
 
+        // 实际上就是粗暴的判断dfs上磁盘目录是否已经存在
         return databaseExistsImpl(databaseName);
     }
 
@@ -141,7 +143,9 @@ public abstract class AbstractCatalog implements Catalog {
     @Override
     public void createDatabase(String name, boolean ignoreIfExists, Map<String, String> properties)
             throws DatabaseAlreadyExistException {
+        // 检查是不是sys db.
         checkNotSystemDatabase(name);
+        // 检查数据库是不是已经存在
         if (databaseExists(name)) {
             if (ignoreIfExists) {
                 return;

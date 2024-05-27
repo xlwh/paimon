@@ -124,7 +124,9 @@ public abstract class AbstractFileStoreWrite<T> implements FileStoreWrite<T> {
 
     @Override
     public void write(BinaryRow partition, int bucket, T data) throws Exception {
+        // 获取bucket级的写入句柄
         WriterContainer<T> container = getWriterWrapper(partition, bucket);
+        // 写数据
         container.writer.write(data);
         if (container.indexMaintainer != null) {
             container.indexMaintainer.notifyNewRecord(data);

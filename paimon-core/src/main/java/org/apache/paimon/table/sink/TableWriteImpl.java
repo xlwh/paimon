@@ -131,12 +131,17 @@ public class TableWriteImpl<T> implements InnerTableWrite, Restorable<List<State
     }
 
     @Nullable
+    // 往表里面写入数据,传入row对象
     public SinkRecord writeAndReturn(InternalRow row) throws Exception {
+        // 获取row类型: INSERT\UPDATE_BEFORE\UPDATE_AFTER\DELETE
         RowKind rowKind = RowKindGenerator.getRowKind(rowKindGenerator, row);
+        // 如果是跳过删除行，那这里则不处理对应的行
         if (ignoreDelete && rowKind.isRetract()) {
             return null;
         }
+        // 填充上分区和bucket等信息，转成内部的record
         SinkRecord record = toSinkRecord(row);
+        // 写数据
         write.write(record.partition(), record.bucket(), recordExtractor.extract(record, rowKind));
         return record;
     }

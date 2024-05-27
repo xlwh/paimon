@@ -71,6 +71,7 @@ public class RollingFileWriter<T, R> implements FileWriter<T, List<R>> {
     }
 
     @Override
+    // 写数据
     public void write(T row) throws IOException {
         try {
             // Open the current writer if write the first record or roll over happen before.
@@ -78,6 +79,7 @@ public class RollingFileWriter<T, R> implements FileWriter<T, List<R>> {
                 openCurrentWriter();
             }
 
+            // 写入数据，行数+1
             currentWriter.write(row);
             recordCount += 1;
 
@@ -109,6 +111,7 @@ public class RollingFileWriter<T, R> implements FileWriter<T, List<R>> {
         // cannot store whole writer, it includes lots of memory for example column vectors to read
         // and write
         closedWriters.add(currentWriter.abortExecutor());
+        // 收集对应的file metas.
         results.add(currentWriter.result());
         currentWriter = null;
     }

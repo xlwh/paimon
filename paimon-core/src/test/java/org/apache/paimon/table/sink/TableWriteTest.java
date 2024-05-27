@@ -92,7 +92,9 @@ public class TableWriteTest {
 
     @Test
     public void testExtractAndRecoverState() throws Exception {
+        // 获取一个随机数生成器
         ThreadLocalRandom random = ThreadLocalRandom.current();
+        // 生成随机测试数据集
         int commitCount = random.nextInt(10) + 1;
         int extractCount = random.nextInt(10) + 1;
         int numRecords = 1000;
@@ -112,10 +114,15 @@ public class TableWriteTest {
             eventList.add(random.nextInt(eventList.size() + 1), Event.EXTRACT_STATE);
         }
 
+        // 数据写入配置
         Options conf = new Options();
+        // 设置bucket id?
         conf.set(CoreOptions.BUCKET, 2);
+        // 设置write buffer size
         conf.set(CoreOptions.WRITE_BUFFER_SIZE, new MemorySize(4096 * 3));
+        // 设置底层page size
         conf.set(CoreOptions.PAGE_SIZE, new MemorySize(4096));
+        // 初始化本地表
         FileStoreTable table = createFileStoreTable(conf);
 
         TableWriteImpl<?> write = table.newWrite(commitUser);
@@ -152,6 +159,7 @@ public class TableWriteTest {
             int partition = random.nextInt(numPartitions);
             int key = random.nextInt(numKeys);
             long value = random.nextLong();
+            // 写数据
             write.write(GenericRow.of(partition, key, value));
             expected.put(partition + "|" + key, value);
         }
@@ -285,6 +293,7 @@ public class TableWriteTest {
     private FileStoreTable createFileStoreTable(Options conf) throws Exception {
         TableSchema tableSchema =
                 SchemaUtils.forceCommit(
+                        // 本地的schema管理器
                         new SchemaManager(LocalFileIO.create(), tablePath),
                         new Schema(
                                 ROW_TYPE.getFields(),

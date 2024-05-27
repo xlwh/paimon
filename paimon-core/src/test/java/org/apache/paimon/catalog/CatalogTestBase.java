@@ -25,14 +25,12 @@ import org.apache.paimon.options.CatalogOptions;
 import org.apache.paimon.options.Options;
 import org.apache.paimon.schema.Schema;
 import org.apache.paimon.schema.SchemaChange;
+import org.apache.paimon.shade.guava30.com.google.common.collect.Lists;
+import org.apache.paimon.shade.guava30.com.google.common.collect.Maps;
 import org.apache.paimon.table.Table;
 import org.apache.paimon.types.DataField;
 import org.apache.paimon.types.DataTypes;
 import org.apache.paimon.types.RowType;
-
-import org.apache.paimon.shade.guava30.com.google.common.collect.Lists;
-import org.apache.paimon.shade.guava30.com.google.common.collect.Maps;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,10 +41,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.apache.paimon.testutils.assertj.PaimonAssertions.anyCauseMatches;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 /** Base test class of paimon catalog in {@link Catalog}. */
 public abstract class CatalogTestBase {
@@ -78,12 +73,16 @@ public abstract class CatalogTestBase {
                     Maps.newHashMap(),
                     "");
 
+    // 测试启动前，设置warehouse
     @BeforeEach
     public void setUp() throws Exception {
         warehouse = tempFile.toUri().toString();
         Options catalogOptions = new Options();
+        // 设置catalog的root path
         catalogOptions.set(CatalogOptions.WAREHOUSE, warehouse);
+        // 创建对应的catalog，返回对应的catalog context.
         CatalogContext catalogContext = CatalogContext.create(catalogOptions);
+        // 通过传入path和catalog context，才能创建访问磁盘文件的工具FileIo.
         fileIO = FileIO.get(new Path(warehouse), catalogContext);
     }
 
@@ -99,9 +98,11 @@ public abstract class CatalogTestBase {
 
     @Test
     public void testListDatabases() throws Exception {
+        // 创建database，时间上就是在catalog的根目录下创建相关的目录
         catalog.createDatabase("db1", false);
         catalog.createDatabase("db2", false);
         catalog.createDatabase("db3", false);
+        catalog.createDatabase("db4", false);
 
         List<String> databases = catalog.listDatabases();
         assertThat(databases).contains("db1", "db2", "db3");
@@ -173,8 +174,10 @@ public abstract class CatalogTestBase {
                 .withMessage("Database db_with_tables is not empty.");
     }
 
+    // 测试建表
     @Test
     public void testListTables() throws Exception {
+        // 先创建了一个database, 并看里面的表都是空的
         // List tables returns an empty list when there are no tables in the database
         catalog.createDatabase("test_db", false);
         List<String> tables = catalog.listTables("test_db");
@@ -187,6 +190,32 @@ public abstract class CatalogTestBase {
 
         tables = catalog.listTables("test_db");
         assertThat(tables).containsExactlyInAnyOrder("table1", "table2", "table3");
+    }
+
+    @Test
+    public void testMyTable() throws Exception {
+        // 1. 创建一个database, catalog开始的时候已经创建过了
+        catalog.createDatabase("xj_test", false);
+        // 2. 检查database是已经创建好的
+        assertThat(catalog.databaseExists("xj_test")).isTrue();
+        // 3. 检查数据库里面的表都是空的
+        assertThat(catalog.listTables("xj_test").isEmpty()).isTrue();
+        // 4. 创建表
+        List<DataField> fields = Lists.newArrayList();
+        List<String> partitionKeys = Lists.newArrayList();
+        List<String> primaryKeys = Lists.newArrayList();
+        for (int i = 0; i < 10; i++) {
+            fields.add(new DataField(i, "col_" + i, DataTypes.STRING()));
+        }
+        Schema schema = new Schema(fields, partitionKeys, primaryKeys, Maps.newHashMap(), "");
+        Identifier tableId = Identifier.create("xj_test", "table1");
+        catalog.createTable(tableId, schema, false);
+        assertThat(catalog.tableExists(tableId)).isTrue();
+
+        // 5. 获取表对象进行操作
+        Table table = catalog.getTable(tableId);
+        table.primaryKeys();
+        System.out.println("Primary keys: " + table.primaryKeys());
     }
 
     @Test

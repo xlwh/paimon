@@ -89,6 +89,7 @@ public abstract class SingleFileWriter<T, R> implements FileWriter<T, R> {
         writeImpl(record);
     }
 
+    // 数据写入的视线
     protected InternalRow writeImpl(T record) throws IOException {
         if (closed) {
             throw new RuntimeException("Writer has already closed!");
@@ -96,6 +97,7 @@ public abstract class SingleFileWriter<T, R> implements FileWriter<T, R> {
 
         try {
             InternalRow rowData = converter.apply(record);
+            // 调用ORC或者Parquet writer来写数据
             writer.addElement(rowData);
             recordCount++;
             return rowData;
@@ -140,6 +142,7 @@ public abstract class SingleFileWriter<T, R> implements FileWriter<T, R> {
         }
 
         try {
+            // 调用对应的flush和finish接口
             writer.flush();
             writer.finish();
 

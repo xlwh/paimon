@@ -75,6 +75,7 @@ public class FileSystemCatalog extends AbstractCatalog {
                     "Currently filesystem catalog can't store database properties, discard properties: {}",
                     properties);
         }
+        // 创建数据库，实际上就是在磁盘上创建对应的目录
         uncheck(() -> fileIO.mkdirs(newDatabasePath(name)));
     }
 

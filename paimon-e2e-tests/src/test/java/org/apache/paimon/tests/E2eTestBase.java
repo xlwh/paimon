@@ -264,15 +264,19 @@ public abstract class E2eTestBase {
         return runSql(sql);
     }
 
+    // 执行SQL方法
     private String runSql(String sql) throws Exception {
+        // 把SQL写到一个临时文件中
         String fileName = UUID.randomUUID() + ".sql";
         writeSharedFile(fileName, sql);
+        // 到job manager的容器上使用SQL client执行命令
         Container.ExecResult execResult =
                 jobManager.execInContainer(
                         "su",
                         "flink",
                         "-c",
                         "bin/sql-client.sh -f " + TEST_DATA_DIR + "/" + fileName);
+        // 执行完后返回输出
         LOG.info(execResult.getStdout());
         LOG.info(execResult.getStderr());
         if (execResult.getExitCode() != 0) {

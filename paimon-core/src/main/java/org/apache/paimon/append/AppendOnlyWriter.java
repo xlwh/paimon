@@ -140,6 +140,7 @@ public class AppendOnlyWriter implements RecordWriter<InternalRow>, MemoryOwner 
     }
 
     @Override
+    // Append 表模式的写入
     public void write(InternalRow rowData) throws Exception {
         Preconditions.checkArgument(
                 rowData.getRowKind().isAdd(),
@@ -353,6 +354,7 @@ public class AppendOnlyWriter implements RecordWriter<InternalRow>, MemoryOwner 
 
         @Override
         public boolean write(InternalRow data) throws IOException {
+            // 获取rolling writer.
             if (writer == null) {
                 writer = createRollingRowWriter();
             }

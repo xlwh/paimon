@@ -216,6 +216,7 @@ public class FlinkActionsE2eTest extends FlinkActionsE2eTestBase {
 
     @Test
     public void testCreateAndDeleteTag() throws Exception {
+        // 建表
         String tableTDdl =
                 "CREATE TABLE IF NOT EXISTS T (\n"
                         + "    k INT,\n"
@@ -223,12 +224,13 @@ public class FlinkActionsE2eTest extends FlinkActionsE2eTestBase {
                         + "    PRIMARY KEY (k) NOT ENFORCED\n"
                         + ");\n";
 
-        // 3 snapshots
+        // 写入数据
         String inserts =
                 "INSERT INTO T VALUES (1, 'Hi');\n"
                         + "INSERT INTO T VALUES (2, 'Hello');\n"
                         + "INSERT INTO T VALUES (3, 'Paimon');\n";
 
+        // 创建表和插入数据
         runBatchSql(
                 "SET 'table.dml-sync' = 'true';\n" + inserts, catalogDdl, useCatalogCmd, tableTDdl);
 
