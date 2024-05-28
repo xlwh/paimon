@@ -45,7 +45,7 @@ As shown in the architecture above:
 engines like Apache Hive, Apache Spark and Trino.
 
 **Internal:**
-- Under the hood, Paimon stores the columnar files on the filesystem/object-store
+- Under the hood, Paimon stores the columnar files on the filesystem/object-store.
 - The metadata of the file is saved in the manifest file, providing large-scale storage and data skipping.
 - For primary key table, uses the LSM tree structure to support a large volume of data updates and high-performance queries.
 
